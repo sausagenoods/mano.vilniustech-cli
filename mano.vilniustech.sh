@@ -87,7 +87,7 @@ get_json() {
 }
 
 print_lectures() {
-	echo $json | jq -r \
+	cat $lectures_json | jq -r \
 		"select(.SEMESTRAS == \"$1\") | select(.SAV_INTERVAL != \"$2\") | .DIENA_ANGL+\";\"+.LAIKAS+\";\"+.DAL_PAVAD_ANGL+\";\"+.AUDITORIJA_ANGL" \
 		| column -s';' -t | cut -d':' -f1,2,3 | sed 's/Auditorium //g'
 }
@@ -114,7 +114,12 @@ get_current_interval() {
 }
 
 get_lectures() {
-	get_json '/student/timetable'
+	lectures_json=$cachedir/lectures.json
+	if [ ! -f $lectures_json ]
+	then
+		get_json '/student/timetable'
+		echo "$json" > $lectures_json
+	fi
 	if [ "$1" = "today" ]
 	then
 		get_current_interval
